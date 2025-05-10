@@ -1,6 +1,6 @@
 const { test, describe, expect } = require('@playwright/test')
 
-const URL_HOME = 'http://127.0.0.1:8080';
+const URL_HOME = 'http://127.0.0.1:8080'
 
 describe('Pokedex', () => {
   test('front page can be opened', async ({ page }) => {
@@ -11,10 +11,10 @@ describe('Pokedex', () => {
 
   test('pokemon can be navigated to', async ({ page }) => {
 
-    await page.goto(URL_HOME);
+    await page.goto(URL_HOME)
 
-    await page.click('text=ivysaur');
+    await page.click('text=ivysaur')
 
-    await expect(page).toHaveURL(/ivysaur/);
+    await expect(page).toHaveURL(/ivysaur/)
   })
 })
