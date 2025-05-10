@@ -11,7 +11,7 @@ app.get('/version', (req, res) => {
   res.send('1.1') // change this string to ensure a new version deployed
 })
 
-app.get('/health', (req, res) => {
+app.get('/health', () => {
   // eslint-disable-next-line no-constant-condition
   if (true) throw ('error...  ')
 })
