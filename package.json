@@ -63,7 +63,7 @@
       "e2e-tests"
     ],
     "testMatch": [
-      "**/tests/**/*.jest.spec.jsx"
+      "**/test/**/*.jest.spec.jsx"
     ]
   }
 }
