@@ -61,6 +61,9 @@
     "testEnvironment": "jsdom",
     "testPathIgnorePatterns": [
       "e2e-tests"
+    ],
+    "testMatch": [
+      "**/tests/**/*.jest.spec.jsx"
     ]
   }
 }
