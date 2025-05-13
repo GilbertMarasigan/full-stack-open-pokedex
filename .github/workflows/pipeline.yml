@@ -1,24 +1,70 @@
-name: Testing stuff
+name: Deployment pipeline
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize]
 
 jobs:
-  a_test_job:
+  simple_deployment_pipeline:
     runs-on: ubuntu-22.04
+    env:
+      SKIP_DEPLOY: ${{ contains(join(github.event.commits.*.message, ' '), '#skip') || github.event_name != 'push' }}
+
     steps:
       - uses: actions/checkout@v4
-      - name: github context
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check style
+        run: npm run eslint
+
+      - name: Build
+        run: npm run build
+
+      - name: Testing
+        run: npm run test
+
+      - name: E2E Test - Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: ${{ env.SKIP_DEPLOY == 'false' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Render Deployment
+        if: ${{ env.SKIP_DEPLOY == 'false' }}
+        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+
+  tag_release:
+    needs: [simple_deployment_pipeline]
+    runs-on: ubuntu-22.04
+    if: ${{ !contains(join(github.event.commits.*.message, ' '), '#skip') && github.event_name == 'push' }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@e528bc2b9628971ce0e6f823f3052d1dcd9d512c
         env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-      - name: commits
-        env:
-          COMMITS: ${{ toJson(github.event.commits) }}
-        run: echo "$COMMITS"
-      - name: commit messages
-        env:
-          COMMIT_MESSAGES: ${{ toJson(github.event.commits.*.message) }}
-        run: echo "$COMMIT_MESSAGES"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: false
